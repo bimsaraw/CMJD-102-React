@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 
 const SingleProduct = () => {
 
-    const { id } = useParams();
+    const params = useParams();
 
     const [product, setProduct] = useState(null);
 
@@ -12,7 +12,7 @@ const SingleProduct = () => {
     },[])
 
     const getProductById = () => {
-        fetch(`http://localhost:8081/products/${id}`)
+        fetch(`http://localhost:8081/products/${params.id}`)
             .then((response) => {
                 return response.json()
             }).then((data) => {
