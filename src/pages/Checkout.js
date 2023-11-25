@@ -4,18 +4,41 @@ import { useEffect, useState } from "react";
 const Checkout = () => {
 
     const [products, setProducts] = useState(null);
-    
+    const [orderProducts, setOrderProducts] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [tax, setTax] = useState(0)
+
     const getProducts = async () => {
         const response = await axios.get('http://localhost:8081/products');
         setProducts(response.data);
     }
 
-        
+    const createOrder = async () => {
+        const productIds = orderProducts.map(obj => obj.id);
+        const data = {
+            products: productIds
+        }
+
+        const response = await axios.post("http://localhost:8081/orders", data);
+        if(response.status === 201) {
+            setOrderProducts([]);
+            setTotal(0);
+            setTax(0);
+        } else {
+            //show error message
+        }
+    }
+
+
 
     useEffect(() => {
         getProducts();
-    },[]);
-    
+    }, []);
+
+    useEffect(() => {
+        setTax( (total/100) * 15 );
+    },[total]);
+
 
     return (
         <>
@@ -27,9 +50,16 @@ const Checkout = () => {
 
                         {products && products.map(product => (
                             <div className="product-box px-2 py-2">
-                                {product.name} - {product.price} 
+                                {product.name} - {product.price}
 
-                                <button className="btn btn-sm btn-primary">Add to Order</button>
+                                <button className="btn btn-sm btn-primary" onClick={() => {
+                                    setOrderProducts([...orderProducts, product]);
+
+                                    let currentTotal = total;
+                                    currentTotal = currentTotal + product.price;
+                                    setTotal(currentTotal);
+
+                                }}>Add to Order</button>
 
                             </div>
                         ))}
@@ -46,16 +76,14 @@ const Checkout = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>08</td>
-                                    <td>Sample Name</td>
-                                    <td>6600.00</td>
-                                </tr>
-                                <tr>
-                                    <td>06</td>
-                                    <td>Sample Name Six</td>
-                                    <td>5600.00</td>
-                                </tr>
+                                {orderProducts && orderProducts.map(product => (
+                                    <tr>
+                                        <td>{product.id}</td>
+                                        <td>{product.name}</td>
+                                        <td>{product.price}</td>
+                                    </tr>
+                                ))}
+
                             </tbody>
                             <thead>
                                 <tr>
@@ -63,7 +91,7 @@ const Checkout = () => {
                                         Total
                                     </th>
                                     <th>
-                                        12200.00
+                                        {total}
                                     </th>
                                 </tr>
                                 <tr>
@@ -71,13 +99,13 @@ const Checkout = () => {
                                         Tax
                                     </th>
                                     <th>
-                                        1800.00
+                                        {tax}
                                     </th>
                                 </tr>
                             </thead>
                         </table>
 
-                        <button className="btn btn-secondary">Complete Order</button>
+                        <button className="btn btn-secondary" onClick={createOrder}>Complete Order</button>
                     </div>
                 </div>
 
